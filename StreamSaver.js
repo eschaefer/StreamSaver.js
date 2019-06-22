@@ -11,6 +11,7 @@
 
   let mitmTransporter = null
   let supportsTransferable = false
+  let isUserAborted = false
   const test = fn => { try { fn() } catch (e) {} }
   const ponyfill = window.WebStreamsPolyfill || {}
   const isSecureContext = window.isSecureContext
@@ -20,11 +21,12 @@
     : 'navigate'
 
   const streamSaver = {
+    isUserAborted,
     createWriteStream,
     WritableStream: window.WritableStream || ponyfill.WritableStream,
     supported: true,
     version: { full: '2.0.0', major: 2, minor: 0, dot: 0 },
-    mitm: 'https://jimmywarting.github.io/StreamSaver.js/mitm.html?version=2.0.0'
+    mitm: 'https://eschaefer.github.io/StreamSaver.js/mitm.html?version=2.0.0'
   }
 
   /**
@@ -201,6 +203,9 @@
       }
 
       channel.port1.onmessage = evt => {
+        if (evt.data.userAborted) {
+          streamSaver.isUserAborted = true;
+        }
         // Service worker sent us a link that we should open.
         if (evt.data.download) {
           // Special treatment for popup...
